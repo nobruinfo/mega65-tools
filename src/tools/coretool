@@ -806,6 +806,14 @@ class CoreFile:
         if not self.bitstream or not self.core_target or not self.bit_name or not self.bit_version:
             raise ValueError("need at least bitstream, target, name and version to build core")
 
+        # layout embedded files
+        embed_offset: int = 4096 + self.bitstream.raw_data_length
+        for file in self.embed_files:
+            file.offset = embed_offset
+            file.next = embed_offset + 40 + file.raw_data_length
+            embed_offset = file.next
+        embed_offset = self.embed_files[0].offset if self.embed_count else 0
+
         # calculate full length
         self.core_length = self.core_max_size
         if not self.has_banner:
@@ -816,7 +824,6 @@ class CoreFile:
 
         buffer: array = array('B', b'\x00' * self.core_length)
 
-        embed_offset: int = 4096 + self.bitstream.raw_data_length if self.embed_count else 0
         struct.pack_into("<16s32s32s32sBBBIIBBBHII", buffer, 0,
                          CORE_MAGIC,
                          self.bit_name.encode('ascii'), self.bit_version.encode('ascii'),
@@ -830,11 +837,8 @@ class CoreFile:
             buffer[-BANNER_SIZE:] = self.banner_data_array
 
         for file in self.embed_files:
-            file.offset = embed_offset
-            file.next = embed_offset + 40 + file.raw_data_length
-            struct.pack_into('<II32s', buffer, embed_offset, file.next, file.raw_data_length, file.name.encode('ascii'))
-            buffer[embed_offset + 40:file.next] = array('B', file.raw_data)
-            embed_offset = file.next
+            struct.pack_into('<II32s', buffer, file.offset, file.next, file.raw_data_length, file.name.encode('ascii'))
+            buffer[file.offset + 40:file.next] = array('B', file.raw_data)
 
         buffer[0xf0:0x100] = self._generate_erase_list(buffer.tobytes())
         if buffer[0xf0] != 0xff:
