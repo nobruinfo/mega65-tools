@@ -3244,12 +3244,13 @@ int show_directory(char *path)
 
       if (itm->d_attr & 0x10) {
         dir_count++;
-        printf("       <DIR> | %-20s | %-12s | %s\n", get_datetime_str(&itm->d_time), itm->d_name, itm->d_longname);
+        printf("       <DIR> | %-20s |              | %-12s | %s\n", get_datetime_str(&itm->d_time),
+               itm->d_name, itm->d_longname);
       }
       else if (itm->d_name[0] && itm->d_filelen >= 0) {
         file_count++;
-        printf("%12d | %-20s | %-12s | %s\n", (int)itm->d_filelen, get_datetime_str(&itm->d_time), itm->d_name,
-            itm->d_longname);
+        printf("%12d | %-20s | %-12s | %-12s | %s\n", (int)itm->d_filelen, get_datetime_str(&itm->d_time),
+               (is_fragmented(itm->d_name) == 1 ? "fragmented" : ""), itm->d_name, itm->d_longname);
       }
       if (dirent_raw == 1) {
         dump_bytes(0, "dirent raw", itm->de_raw, 32);
