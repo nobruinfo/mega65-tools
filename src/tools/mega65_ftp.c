@@ -196,6 +196,7 @@ int delete_single_file(char *name, BOOL consent);
 void wipe_direntries_of_current_file_or_dir(void);
 void determine_ethernet_window_size(void);
 int is_fragmented(char *filename);
+void show_card(void);
 
 int direct_sdcard_device = 0;
 FILE *fsdcard = NULL;
@@ -666,6 +667,9 @@ int execute_command(char *cmd)
   else if (!strcmp(cmd, "roms")) {
     list_all_roms();
   }
+  else if (!strcmp(cmd, "card")) {
+    show_card();
+  }
   else if (!strcasecmp(cmd, "help")) {
     printf("MEGA65 File Transfer Program Command Reference:\n\n");
 
@@ -704,6 +708,7 @@ int execute_command(char *cmd)
     printf("fhflash <num> <slotnum> - download a cor file from the filehost and flash it to specified slot via vivado\n");
     printf("flash <fname> <slotnum> - (DEVKIT only!) flash a cor file on your local drive to specified slot via vivado\n");
     printf("roms - list all MEGA65x.ROM files on your sd-card along with their version information\n");
+    printf("card - shows which sdcard is in use.\n");
     printf("exit - leave this programme.\n");
     printf("quit - leave this programme.\n");
   }
@@ -5904,6 +5909,15 @@ int download_file(char *name, char *local_name, int showClusters)
   }
 
   return 0;
+}
+
+void show_card(void)
+{
+  if (peek(0xffd3680) & 0x80)  {
+    printf("External storage card in use.\n");
+  } else {
+    printf("Internal storage card in use.\n");
+  }
 }
 
 /* please leave this comment as the last line: used by vim */
