@@ -18,6 +18,7 @@ int contains_file_or_dir(char *name);
 int is_fragmented(char *filename);
 int create_dir(char *);
 int show_directory(char *path);
+void disk_free(void);
 void change_dir(char *path);
 void put_tilde_number_in_shortname(char *short_name, int i);
 char *get_current_short_name(void);
@@ -670,6 +671,7 @@ TEST_F(Mega65FtpTestFixture, CreateDeleteDirectoryWithFiles)
   ReleaseStdOut();
   CaptureStdOut();
   show_directory("");
+  disk_free();
   std::string output = RetrieveStdOut();
   EXPECT_THAT(output, testing::ContainsRegex(" 0 File"));
   // also check for the before amount of regained available clusters:
@@ -701,6 +703,8 @@ TEST_F(Mega65FtpTestFixture, CreateDeleteDirectoryWithFiles)
   // dump_sdcard_to_file("sdcard_after2.bin");
 
   show_directory("");
+  disk_free();
+  output = RetrieveStdOut();
   /* std::string */ output = RetrieveStdOut();
   EXPECT_THAT(output, testing::ContainsRegex(" 0 File"));
   // also check for the before amount of regained available clusters:
