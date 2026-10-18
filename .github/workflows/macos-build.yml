@@ -75,5 +75,7 @@ jobs:
     - name: Upload Artifacts
       uses: actions/upload-artifact@v4
       with:
-        name: binaries
-        path: ~/.conan2/p/
+        name: binaries-for-macos
+        path: |
+          bin/*.osx
+          ./*.7z
