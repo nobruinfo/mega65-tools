@@ -1,1 +1,0 @@
-. "/mnt/f/Entwicklungsprojekte/github-nobru/mega65-tools/deactivate_conanbuildenv-release-x86_64.sh"

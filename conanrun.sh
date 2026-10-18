@@ -1,1 +1,0 @@
-. "/mnt/f/Entwicklungsprojekte/github-nobru/mega65-tools/conanrunenv-release-x86_64.sh"
