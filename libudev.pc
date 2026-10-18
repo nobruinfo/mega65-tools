@@ -1,0 +1,7 @@
+prefix=/home/superuser/.conan2/p/libud89591669e39a6/p
+bindir=${prefix}/bin
+
+Name: libudev
+Description: Conan package: libudev
+Version: 259
+Libs: -ludev

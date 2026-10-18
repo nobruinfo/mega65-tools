@@ -3259,13 +3259,12 @@ int show_directory(char *path)
 
       if (itm->d_attr & 0x10) {
         dir_count++;
-        printf("       <DIR> | %-20s |              | %-12s | %s\n", get_datetime_str(&itm->d_time),
-               itm->d_name, itm->d_longname);
+        printf("       <DIR> | %-20s | %-12s | %s\n", get_datetime_str(&itm->d_time), itm->d_name, itm->d_longname);
       }
       else if (itm->d_name[0] && itm->d_filelen >= 0) {
         file_count++;
-        printf("%12d | %-20s | %-12s | %-12s | %s\n", (int)itm->d_filelen, get_datetime_str(&itm->d_time),
-               (is_fragmented(itm->d_name) == 1 ? "fragmented" : ""), itm->d_name, itm->d_longname);
+        printf("%12d | %-20s | %-12s | %s\n", (int)itm->d_filelen, get_datetime_str(&itm->d_time), itm->d_name,
+            itm->d_longname);
       }
       if (dirent_raw == 1) {
         dump_bytes(0, "dirent raw", itm->de_raw, 32);
@@ -4857,19 +4856,46 @@ int upload_file(char *name, char *dest_name)
 
   // if no wildcards in name, then just upload a single file
   if (!strstr(name, "*"))
+  {
+    d = opendir(name);
+    if ((d) && ((dir = readdir(d)) != NULL)) {
+      printf("\nCreating remote directory \"%s\"...\n", dest_name);
+      // if option 'y' to skip user consent on overwriting is set diving into
+      // directories to add non existing files and structures is desired as
+      // suggested by Tayger:
+      if (create_dir(dest_name) != 0 && !ignore_security_questions)  return -1;
+      change_dir(dest_name);
+      change_local_dir(name);
+      // recursion within the directory:
+      upload_file("*", "*");
+      change_dir("..");
+      change_local_dir("..");
+      closedir(d);
+      return 0;
+    }
+    closedir(d);
+    // it is not a directory:
     return upload_single_file(name, dest_name);
+  }
 
   // check for wildcards in name
   // list directory first
   d = opendir(".");
   if (d) {
     while ((dir = readdir(d)) != NULL) {
-      if (!is_match(dir->d_name, name, 1))
+      // skip directory management entries and non matching ones:
+      if ((strcmp(dir->d_name, "..") == 0) ||
+          (strcmp(dir->d_name, ".") == 0) ||
+          (!is_match(dir->d_name, name, 1)))
         continue;
 
       struct stat file_stats;
       if (!stat(dir->d_name, &file_stats)) {
-        if (!S_ISDIR(file_stats.st_mode)) {
+        if (S_ISDIR(file_stats.st_mode)) {
+          // printf("\nrecursing for directory \"%s\"...\n", dir->d_name);
+          // recursion for a directory:
+          upload_file(dir->d_name, dir->d_name);
+        } else {
           printf("\nUploading \"%s\"...\n", dir->d_name);
           upload_single_file(dir->d_name, dir->d_name);
         }

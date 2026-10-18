@@ -1,0 +1,4 @@
+Name: libpng16
+Description: Alias libpng16 for libpng
+Version: 1.6.50
+Requires: libpng
